@@ -3,7 +3,7 @@
 from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from app.corelibs.logger import init_logger, logger
 from app.db import redis_pool
 from app.init.cors import init_cors
@@ -46,18 +46,27 @@ def create_app() -> FastAPI:
     init_cors(app)  # 初始化跨域
     init_mount(app)  # 挂载静态文件
 
-    # 自定义 API 文档路由
+    # 自定义 API 文档路由（使用本地静态资源，离线可用）
     @app.get("/docs", include_in_schema=False)
     async def custom_swagger_ui_html():
         """Swagger UI 文档"""
-        with open("static/swagger/swagger.html", "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
+        return get_swagger_ui_html(
+            openapi_url=app.openapi_url,
+            title=f"{app.title} - Swagger UI",
+            swagger_js_url="/static/swagger/swagger-ui/swagger-ui-bundle.js",
+            swagger_css_url="/static/swagger/swagger-ui/swagger-ui.css",
+            swagger_favicon_url="/static/swagger/favicon.png",
+        )
 
     @app.get("/redoc", include_in_schema=False)
     async def custom_redoc_html():
         """ReDoc 文档"""
-        with open("static/swagger/redoc.html", "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
+        return get_redoc_html(
+            openapi_url=app.openapi_url,
+            title=f"{app.title} - ReDoc",
+            redoc_js_url="/static/swagger/redoc/bundles/redoc.standalone.js",
+            redoc_favicon_url="/static/swagger/favicon.png",
+        )
 
     return app
 
@@ -66,5 +75,5 @@ app = create_app()
 
 
 if __name__ == '__main__':
-    uvicorn.run(app='main:app', host="0.0.0.0", port=8100, reload=True)
+    uvicorn.run(app='main:app', host="127.0.0.1", port=8100, reload=True)
     # gunicorn main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8101
