@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # @author: rebort
 """API 文档相关接口"""
+
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 import os

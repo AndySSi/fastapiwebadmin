@@ -12,8 +12,15 @@ from app.corelibs.codes import CodeEnum
 from app.corelibs.consts import TEST_USER_INFO, CACHE_DAY
 from app.db import redis_pool
 from app.models.system_models import User, Menu, Roles, UserLoginRecord
-from app.schemas.system.user import UserLogin, UserIn, UserResetPwd, UserDel, UserQuery, \
-    UserLoginRecordIn, UserLoginRecordQuery
+from app.schemas.system.user import (
+    UserLogin,
+    UserIn,
+    UserResetPwd,
+    UserDel,
+    UserQuery,
+    UserLoginRecordIn,
+    UserLoginRecordQuery,
+)
 from app.services.system.menu import MenuService
 from app.utils.context import FastApiRequest
 from app.utils.current_user import current_user
@@ -38,17 +45,18 @@ class UserService:
         user_info = await User.get_user_by_name(username)
         if not user_info:
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
-        
+
         # 检查用户状态（兼容多种数据类型：0, False, '0'）
         user_status = user_info.get("status")
-        if user_status in [0, False, '0', None]:
-            raise ValueError('该账户已被禁用，请联系管理员！')
-        
+        if user_status in [0, False, "0", None]:
+            raise ValueError("该账户已被禁用，请联系管理员！")
+
         # 使用 bcrypt 验证密码
         from app.utils.security import verify_password
+
         if not verify_password(password, user_info["password"]):
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
-            
+
         token = str(uuid.uuid4())
         login_time = default_serialize(datetime.now())
         tags = user_info.get("tags", None)
@@ -60,10 +68,10 @@ class UserService:
             "username": user_info["username"],
             "nickname": user_info["nickname"],
             "roles": roles if roles else [],
-            "tags": tags if tags else []
+            "tags": tags if tags else [],
         }
         await redis_pool.redis.set(TEST_USER_INFO.format(token), token_user_info, CACHE_DAY)
-        logger.info('用户 [{}] 登录了系统，状态: {}'.format(user_info["username"], user_status))
+        logger.info("用户 [{}] 登录了系统，状态: {}".format(user_info["username"], user_status))
 
         asyncio.create_task(UserService.login_record("login", token_user_info, token))
         return token_user_info
@@ -74,7 +82,7 @@ class UserService:
         登出
         :return:
         """
-        token = FastApiRequest.get().headers.get('token', None)
+        token = FastApiRequest.get().headers.get("token", None)
         try:
             token_user_info = await current_user(token)
             await redis_pool.redis.delete(TEST_USER_INFO.format(token))
@@ -85,7 +93,7 @@ class UserService:
     @staticmethod
     async def login_record(record_type: str, user_token_info: dict, token: str):
         try:
-            if record_type == 'login':
+            if record_type == "login":
                 login_ip = FastApiRequest.get().headers.get("X-Real-IP", None)
                 if not login_ip:
                     login_ip = FastApiRequest.get().client.host
@@ -95,16 +103,18 @@ class UserService:
                     user_id=user_token_info["id"],
                     user_name=user_token_info["nickname"],
                     login_type="password",
-                    login_time=user_token_info['login_time'],
+                    login_time=user_token_info["login_time"],
                     login_ip=login_ip,
                     ret_code="0",  # 登录成功
-                    ret_msg="登录成功"
+                    ret_msg="登录成功",
                 )
                 await UserLoginRecord.create_or_update(params.model_dump())
-            elif record_type == 'logout':
+            elif record_type == "logout":
                 login_recode = await UserLoginRecord.get_by_token(token)
                 if login_recode:
-                    await UserLoginRecord.update({"id": login_recode['id'], "logout_time": datetime.now()})
+                    await UserLoginRecord.update(
+                        {"id": login_recode["id"], "logout_time": datetime.now()}
+                    )
 
         except Exception as exc:
             logger.error(f"登录日志记录错误\n{traceback.format_exc(3)}")
@@ -143,31 +153,33 @@ class UserService:
         if not params.id:
             # 新建用户
             if await User.get_user_by_nickname(params.nickname):
-                raise ValueError('用户昵称已存在！')
+                raise ValueError("用户昵称已存在！")
             # 新建用户时，如果没有提供密码，使用默认密码
             if not params.password:
-                params.password = '123456'  # 默认密码
+                params.password = "123456"  # 默认密码
             # 密码加密
             params.password = hash_password(params.password)
         else:
             # 更新用户
             user_info = await User.get(params.id, to_dict=True)
-            if user_info['nickname'] != params.nickname and await User.get_user_by_nickname(params.nickname):
-                raise ValueError('用户昵称已存在！')
-            
+            if user_info["nickname"] != params.nickname and await User.get_user_by_nickname(
+                params.nickname
+            ):
+                raise ValueError("用户昵称已存在！")
+
             # 判断是否需要更新密码
             # 1. 如果密码字段为空或空字符串，保持原密码
             # 2. 如果密码字段是旧的哈希值（以 $2b$ 开头），保持原密码
             # 3. 否则，认为是新密码，需要加密
             if params.password and params.password.strip():
                 # 检查是否是 bcrypt 哈希值（以 $2b$ 开头）
-                if params.password.startswith('$2b$'):
-                    params.password = user_info['password']
+                if params.password.startswith("$2b$"):
+                    params.password = user_info["password"]
                 else:
                     params.password = hash_password(params.password)
             else:
-                params.password = user_info['password']
-                
+                params.password = user_info["password"]
+
         result = await User.create_or_update(params.dict())
         current_user_info = await current_user()
         if current_user_info.get("id") == params.id:
@@ -177,7 +189,7 @@ class UserService:
                 "login_time": current_user_info.get("login_time"),
                 "username": result["username"],
                 "roles": result["roles"],
-                "tags": result["tags"]
+                "tags": result["tags"],
             }
             await redis_pool.redis.set(TEST_USER_INFO.format(g.token), token_user_info, CACHE_DAY)
         return result
@@ -205,10 +217,7 @@ class UserService:
         if not user_info:
             raise ValueError(CodeEnum.PARTNER_CODE_TOKEN_EXPIRED_FAIL.msg)
 
-        user_info = {
-            'id': user_info.get('id', None),
-            'username': user_info.get('username', None)
-        }
+        user_info = {"id": user_info.get("id", None), "username": user_info.get("username", None)}
         return user_info
 
     @staticmethod
@@ -216,36 +225,37 @@ class UserService:
         """用户修改自己的密码"""
         if params.new_pwd != params.re_new_pwd:
             raise ValueError(CodeEnum.PASSWORD_TWICE_IS_NOT_AGREEMENT.msg)
-        
+
         user_info = await User.get(params.id, to_dict=True)
         if not user_info:
-            raise ValueError('用户不存在！')
-        
+            raise ValueError("用户不存在！")
+
         # 使用 bcrypt 验证旧密码
         from app.utils.security import verify_password
-        if not verify_password(params.old_pwd, user_info['password']):
+
+        if not verify_password(params.old_pwd, user_info["password"]):
             raise ValueError(CodeEnum.OLD_PASSWORD_ERROR.msg)
-        
+
         # 检查新密码是否与旧密码相同
-        if verify_password(params.new_pwd, user_info['password']):
+        if verify_password(params.new_pwd, user_info["password"]):
             raise ValueError(CodeEnum.NEW_PWD_NO_OLD_PWD_EQUAL.msg)
-        
+
         # 加密新密码
         new_pwd_hash = hash_password(params.new_pwd)
         await User.update({"password": new_pwd_hash, "id": params.id})
-        logger.info(f'用户 [{user_info["username"]}] 修改了密码')
+        logger.info(f"用户 [{user_info['username']}] 修改了密码")
 
     @staticmethod
-    async def admin_reset_password(user_id: int, new_password: str = '123456'):
+    async def admin_reset_password(user_id: int, new_password: str = "123456"):
         """管理员重置用户密码"""
         user_info = await User.get(user_id)
         if not user_info:
-            raise ValueError('用户不存在！')
-        
+            raise ValueError("用户不存在！")
+
         # 加密新密码
         hashed_password = hash_password(new_password)
         await User.update({"password": hashed_password, "id": user_id})
-        logger.info(f'管理员重置用户 [{user_info.username}] 的密码')
+        logger.info(f"管理员重置用户 [{user_info.username}] 的密码")
         return True
 
     @staticmethod
@@ -253,10 +263,10 @@ class UserService:
         """更新用户头像"""
         user_info = await User.get(user_id)
         if not user_info:
-            raise ValueError('用户不存在！')
-        
+            raise ValueError("用户不存在！")
+
         await User.update({"avatar": avatar, "id": user_id})
-        logger.info(f'用户 [{user_info.username}] 更新了头像')
+        logger.info(f"用户 [{user_info.username}] 更新了头像")
         return True
 
     @staticmethod
@@ -264,7 +274,7 @@ class UserService:
         """获取用户信息"""
         user_info = await User.get(user_id, to_dict=True)
         if not user_info:
-            raise ValueError('用户不存在！')
+            raise ValueError("用户不存在！")
         return user_info
 
     @staticmethod
@@ -277,16 +287,30 @@ class UserService:
         user_info = await User.get(token_user_info.get("id"))
         if not user_info:
             raise ValueError(CodeEnum.PARTNER_CODE_TOKEN_EXPIRED_FAIL.msg)
-        
+
         # 临时方案：返回所有可能的权限，让所有按钮都显示
         all_permissions = [
-            'user:query', 'user:add', 'user:edit', 'user:disable', 'user:resetPwd', 'user:delete',
-            'role:query', 'role:add', 'role:edit', 'role:delete',
-            'dept:add', 'dept:edit', 'dept:disable', 'dept:delete',
-            'project:query', 'project:add', 'project:edit', 'project:delete',
-            'loginRecord:query'
+            "user:query",
+            "user:add",
+            "user:edit",
+            "user:disable",
+            "user:resetPwd",
+            "user:delete",
+            "role:query",
+            "role:add",
+            "role:edit",
+            "role:delete",
+            "dept:add",
+            "dept:edit",
+            "dept:disable",
+            "dept:delete",
+            "project:query",
+            "project:add",
+            "project:edit",
+            "project:delete",
+            "loginRecord:query",
         ]
-        
+
         return {
             "id": user_info.id,
             "avatar": user_info.avatar,
@@ -296,7 +320,7 @@ class UserService:
             "tags": user_info.tags,
             "user_type": user_info.user_type,
             "login_time": token_user_info.get("login_time", None),
-            "authBtnList": all_permissions  # 返回所有权限，让所有按钮都显示
+            "authBtnList": all_permissions,  # 返回所有权限，让所有按钮都显示
         }
 
     @staticmethod
@@ -316,14 +340,14 @@ class UserService:
         else:
             roles = await Roles.get_roles_by_ids(user_info.roles if user_info.roles else [])
             for i in roles:
-                menu_ids += list(map(int, i["menus"].split(',')))
+                menu_ids += list(map(int, i["menus"].split(",")))
             if not menu_ids:
                 return []
             parent_menus = await Menu.get_parent_id_by_ids(list(set(menu_ids)))
             # 前端角色只保存子节点数据，所以这里要做处理，把父级菜单也返回给前端
             menu_ids += [i["parent_id"] for i in parent_menus]
             all_menu = await Menu.get_menu_by_ids(list(set(menu_ids)))
-        parent_menu = [menu for menu in all_menu if menu['parent_id'] == 0]
+        parent_menu = [menu for menu in all_menu if menu["parent_id"] == 0]
         return MenuService.menu_assembly(parent_menu, all_menu) if menu_ids else []
 
     # @staticmethod
@@ -345,5 +369,5 @@ class LoginRecordService:
             if not row["roles"]:
                 row["roles"] = []
             else:
-                row["roles"] = list(map(int, row["roles"].split(',')))
+                row["roles"] = list(map(int, row["roles"].split(",")))
         return data

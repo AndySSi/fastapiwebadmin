@@ -20,7 +20,7 @@ class RoleIn(BaseModel):
     def root_validator(cls, data: typing.Dict[typing.Text, typing.Any]):
         menus = data.get("menus", [])
         if menus:
-            data["menus"] = ','.join(list(map(str, menus)))
+            data["menus"] = ",".join(list(map(str, menus)))
         return data
 
 

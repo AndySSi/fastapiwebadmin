@@ -14,18 +14,21 @@ if __name__ != "__main__":
         # 如果导入失败（比如在 Alembic 环境中缺少某些依赖），忽略
         pass
 
+
 # 只在应用运行时需要的功能
 def init_db_module():
     """延迟导入需要完整依赖的模块"""
     import asyncio
+
     try:
         from loguru import logger
     except ImportError:
         import logging
+
         logger = logging.getLogger(__name__)
-    
+
     from app.db.sqlalchemy import engine
-    
+
     async def init_db():
         """
         初始化数据库
@@ -34,8 +37,9 @@ def init_db_module():
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
-    
+
     return init_db
+
 
 # 导出 init_db 函数
 try:

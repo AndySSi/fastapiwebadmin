@@ -7,7 +7,7 @@ from config import config
 
 
 def init_cors(app: FastAPI):
-    """ 跨域请求 -- https://fastapi.tiangolo.com/zh/tutorial/cors/ """
+    """跨域请求 -- https://fastapi.tiangolo.com/zh/tutorial/cors/"""
 
     app.add_middleware(
         CORSMiddleware,

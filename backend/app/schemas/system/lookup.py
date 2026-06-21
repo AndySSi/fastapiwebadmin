@@ -38,6 +38,7 @@ class LookupValueQuery(BaseSchema):
 
 class LookupValueIn(BaseModel):
     """字典值保存"""
+
     id: typing.Optional[int] = Field(None, description="字典id")
     lookup_id: typing.Optional[int] = Field(None, description="字典id")
     lookup_code: typing.Optional[str] = Field(None, description="字典code")
@@ -46,12 +47,12 @@ class LookupValueIn(BaseModel):
     display_sequence: typing.Optional[int] = Field(None, description="显示顺序")
     description: typing.Optional[str] = Field(None, description="描述")
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def convert_empty_strings(cls, data: typing.Any) -> typing.Any:
         """将空字符串转换为 None"""
         if isinstance(data, dict):
             for key, value in data.items():
-                if value == '':
+                if value == "":
                     data[key] = None
         return data

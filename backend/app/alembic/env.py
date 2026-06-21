@@ -15,7 +15,7 @@ from config import config as app_config
 config = context.config
 
 # 设置数据库 URL（从 .env 读取）
-config.set_main_option('sqlalchemy.url', app_config.DATABASE_URI_SYNC)
+config.set_main_option("sqlalchemy.url", app_config.DATABASE_URI_SYNC)
 
 # Interpret the config file for Python logging
 if config.config_file_name is not None:
@@ -27,13 +27,14 @@ target_metadata = None
 try:
     # 导入 Base 和所有模型
     from app.models.base import Base
+
     target_metadata = Base.metadata
-    
+
     # 导入模型以便 Alembic 检测
     from app.models import system_models, celery_beat_models, api_models
-    
+
     print(f"成功导入 {len(target_metadata.tables)} 个表")
-    
+
 except Exception as e:
     print(f"导入模型失败: {e}")
     print("请确保：")
@@ -66,9 +67,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

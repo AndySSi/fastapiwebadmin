@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # @author: rebort
 """测试配置文件"""
+
 import pytest
 from httpx import AsyncClient
 from main import app

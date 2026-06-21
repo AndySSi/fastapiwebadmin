@@ -37,9 +37,9 @@ def generate_secret_key():
     rsa = RSA.generate(1024, random_generator)
     private_key = rsa.exportKey()
     public_key = rsa.publickey().exportKey()
-    print(private_key.decode('utf8'))
-    print(public_key.decode('utf8'))
-    return private_key.decode('utf8'), public_key.decode('utf8')
+    print(private_key.decode("utf8"))
+    print(public_key.decode("utf8"))
+    return private_key.decode("utf8"), public_key.decode("utf8")
 
 
 def encrypt_rsa_password(password):
@@ -51,7 +51,7 @@ def encrypt_rsa_password(password):
     try:
         public_key = RSA.import_key(PUBLIC_KEY)
         cipher = PKCS1_v1_5.new(public_key)
-        text = cipher.encrypt(password.encode('utf8'))
+        text = cipher.encrypt(password.encode("utf8"))
         return base64.b64encode(text)
     except Exception as err:
         print(err)
@@ -67,13 +67,16 @@ def decrypt_rsa_password(password):
     try:
         private_key = RSA.import_key(PRIVATE_KEY)
         cipher = PKCS1_v1_5.new(private_key)
-        text = cipher.decrypt(base64.b64decode(password), b'')
+        text = cipher.decrypt(base64.b64decode(password), b"")
         return text.decode()
     except Exception as err:
         return password
 
 
-if __name__ == '__main__':
-    print(encrypt_rsa_password('Aa123456'))
-    print(decrypt_rsa_password(
-        'rjEAdq5BWN15fEEdtqqpKCBvoRd10rhJR3mznpCekVgnhOnfi1rC6dRt4RZ1XcVpDXAIxUevGuCj9r6GYfTqx+1Iqt3EEuxM0D5yRkiCtWs+PpqoNAGgD+8DMdWlu3DfmhvTFK/00WXjv+pw6jtZYjgNdHwz78f4hnpXSRtNh5o='))
+if __name__ == "__main__":
+    print(encrypt_rsa_password("Aa123456"))
+    print(
+        decrypt_rsa_password(
+            "rjEAdq5BWN15fEEdtqqpKCBvoRd10rhJR3mznpCekVgnhOnfi1rC6dRt4RZ1XcVpDXAIxUevGuCj9r6GYfTqx+1Iqt3EEuxM0D5yRkiCtWs+PpqoNAGgD+8DMdWlu3DfmhvTFK/00WXjv+pw6jtZYjgNdHwz78f4hnpXSRtNh5o="
+        )
+    )

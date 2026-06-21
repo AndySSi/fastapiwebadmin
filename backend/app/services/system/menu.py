@@ -31,11 +31,11 @@ class MenuService:
 
         if not params.id:
             if await Menu.get_menu_by_title(params.title):
-                raise ValueError('菜单名称以存在！')
+                raise ValueError("菜单名称以存在！")
         else:
             menu_info = await Menu.get(params.id)
             if menu_info.title != params.title and await Menu.get_menu_by_title(params.title):
-                raise ValueError('用户名已存在！')
+                raise ValueError("用户名已存在！")
 
         result = await Menu.create_or_update(params.dict(), to_dict=True)
         logger.info(f"菜单保存/更新成功: {result}")
@@ -65,27 +65,31 @@ class MenuService:
             logger.error(traceback.format_exc())
 
     @staticmethod
-    def assemble_menu_data(menu: typing.Dict[typing.Text, typing.Any]) -> typing.Dict[typing.Text, typing.Any]:
+    def assemble_menu_data(
+        menu: typing.Dict[typing.Text, typing.Any],
+    ) -> typing.Dict[typing.Text, typing.Any]:
         """
         菜单组装
         :param menu:
         :return:
         """
-        if not menu.get('meta', None):
-            menu['meta'] = {
-                'title': menu.get('title', None),
-                'isLink': menu.pop('isLink', None),
-                'isHide': menu.pop('isHide', None),
-                'isKeepAlive': menu.pop('isKeepAlive', None),
-                'isAffix': menu.pop('isAffix', None),
-                'isIframe': menu.pop('isIframe', None),
-                'icon': menu.pop('icon', None),
-                'roles': ['all']
+        if not menu.get("meta", None):
+            menu["meta"] = {
+                "title": menu.get("title", None),
+                "isLink": menu.pop("isLink", None),
+                "isHide": menu.pop("isHide", None),
+                "isKeepAlive": menu.pop("isKeepAlive", None),
+                "isAffix": menu.pop("isAffix", None),
+                "isIframe": menu.pop("isIframe", None),
+                "icon": menu.pop("icon", None),
+                "roles": ["all"],
             }
         return menu
 
     @staticmethod
-    def menu_assembly(parent_menu: typing.List[typing.Any], all_menu: typing.List[typing.Any]) -> typing.List[typing.Any]:
+    def menu_assembly(
+        parent_menu: typing.List[typing.Any], all_menu: typing.List[typing.Any]
+    ) -> typing.List[typing.Any]:
         """
         递归遍历菜单
         :param parent_menu: 一级菜单列表
@@ -95,9 +99,13 @@ class MenuService:
         for parent in parent_menu:
             MenuService.assemble_menu_data(parent)
             for menu in all_menu:
-                if menu['parent_id'] == parent['id']:
-                    parent['children'] = [] if not parent.get('children', None) else parent['children']
+                if menu["parent_id"] == parent["id"]:
+                    parent["children"] = (
+                        [] if not parent.get("children", None) else parent["children"]
+                    )
                     MenuService.assemble_menu_data(menu)
-                    parent['children'].append(menu)
-            MenuService.menu_assembly(parent['children'], all_menu) if parent.get('children', None) else ...
+                    parent["children"].append(menu)
+            MenuService.menu_assembly(parent["children"], all_menu) if parent.get(
+                "children", None
+            ) else ...
         return parent_menu

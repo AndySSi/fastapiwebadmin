@@ -38,8 +38,9 @@ def len_or_none(obj: typing.Any) -> typing.Optional[int]:
         return None
 
 
-def unwrap_scalars(items: typing.Union[typing.Sequence[Row], Row]) -> typing.Union[
-    typing.List[typing.Dict[typing.Text, typing.Any]], typing.Dict[str, typing.Any]]:
+def unwrap_scalars(
+    items: typing.Union[typing.Sequence[Row], Row],
+) -> typing.Union[typing.List[typing.Dict[typing.Text, typing.Any]], typing.Dict[str, typing.Any]]:
     """
     数据库Row对象数据序列化为字典
     :param items: 数据返回数据 [Row(...)]

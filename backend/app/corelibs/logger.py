@@ -14,7 +14,7 @@ from app.utils.common import get_str_uuid
 
 
 def logger_file() -> str:
-    """ 创建日志文件名 """
+    """创建日志文件名"""
     log_path = create_dir(config.LOGGER_DIR)
 
     """ 保留日志文件夹下最大个数(本地调试用) 
@@ -30,7 +30,7 @@ def logger_file() -> str:
 def correlation_id_filter(record):
     if not g.trace_id:
         g.trace_id = get_str_uuid()
-    record['trace_id'] = g.trace_id
+    record["trace_id"] = g.trace_id
     return record
 
 
@@ -71,6 +71,6 @@ def init_logger():
         effective_level = logging.getLogger(logger_name).getEffectiveLevel()
         if effective_level < logging.getLevelName(config.LOGGER_LEVEL.upper()):
             logging.getLogger(logger_name).setLevel(config.LOGGER_LEVEL.upper())
-        if '.' not in logger_name:
+        if "." not in logger_name:
             logging.getLogger(logger_name).handlers = []
             logging.getLogger(logger_name).addHandler(InterceptHandler())

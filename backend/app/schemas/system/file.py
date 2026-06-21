@@ -18,6 +18,7 @@ class FileIn(BaseModel):
 
 class FileQuery(BaseModel):
     """文件查询参数"""
+
     page: int = Field(1, description="页码")
     pageSize: int = Field(20, description="每页数量")
     name: typing.Optional[str] = Field(None, description="文件名搜索")

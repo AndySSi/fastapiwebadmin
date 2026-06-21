@@ -31,9 +31,9 @@ class ContextIncludedRoute(APIRoute):
                         pass
                         if body_bytes:
                             try:
-                                body = body_bytes.decode('utf-8')
+                                body = body_bytes.decode("utf-8")
                             except:
-                                body = body_bytes.decode('gb2312')
+                                body = body_bytes.decode("gb2312")
             except:
                 pass
 

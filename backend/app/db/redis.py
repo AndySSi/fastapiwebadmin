@@ -10,7 +10,7 @@ from redis.typing import KeyT, FieldT, EncodableT, AnyFieldT
 
 
 class MyAsyncRedis(aioredis.Redis):
-    """ 异步Redis,并添加自己的方法 """
+    """异步Redis,并添加自己的方法"""
 
     # 写 __init__ 的话就取消下面注释
     # def __init__(self, connection_pool):
@@ -21,10 +21,10 @@ class MyAsyncRedis(aioredis.Redis):
         return json.loads(data) if data else None
 
     async def set(
-            self,
-            name: str,
-            value: typing.Any,
-            ex: typing.Optional[int] = None,
+        self,
+        name: str,
+        value: typing.Any,
+        ex: typing.Optional[int] = None,
     ) -> typing.Any:
         return await super(MyAsyncRedis, self).set(name, json.dumps(value), ex=ex)
 
@@ -77,11 +77,11 @@ class MyAsyncRedis(aioredis.Redis):
         return None
 
     async def hset(
-            self,
-            name: KeyT,
-            key: typing.Optional[FieldT] = None,
-            value: typing.Optional[EncodableT] = None,
-            mapping: typing.Optional[typing.Mapping[AnyFieldT, EncodableT]] = None,
+        self,
+        name: KeyT,
+        key: typing.Optional[FieldT] = None,
+        value: typing.Optional[EncodableT] = None,
+        mapping: typing.Optional[typing.Mapping[AnyFieldT, EncodableT]] = None,
     ) -> typing.Awaitable:
 
         if key is None and not mapping:
@@ -141,5 +141,3 @@ class RedisPool:
         if not self.redis:
             raise Exception("请先初始化redis连接池！~, 请调用init_app或init_by_config方法")
         return self.redis
-
-

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # @author: rebort
 """健康检查和系统信息接口"""
+
 import time
 from datetime import datetime
 from typing import Dict, Any
@@ -35,26 +36,23 @@ router = APIRouter()
                             "status": "healthy",
                             "timestamp": "2024-01-16T10:00:00",
                             "version": "2.0",
-                            "checks": {
-                                "database": {"status": "up"},
-                                "redis": {"status": "up"}
-                            }
-                        }
+                            "checks": {"database": {"status": "up"}, "redis": {"status": "up"}},
+                        },
                     }
                 }
-            }
+            },
         }
-    }
+    },
 )
 async def health_check():
     """
     健康检查接口
-    
+
     检查项：
     - 数据库连接状态
     - Redis连接状态
     - 系统整体状态
-    
+
     返回：
     - status: healthy(健康) / unhealthy(不健康)
     - timestamp: 检查时间
@@ -65,9 +63,9 @@ async def health_check():
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
         "version": str(config.SERVER_VERSION),
-        "checks": {}
+        "checks": {},
     }
-    
+
     # 检查数据库
     try:
         async with async_session() as session:
@@ -76,7 +74,7 @@ async def health_check():
     except Exception as e:
         health_status["status"] = "unhealthy"
         health_status["checks"]["database"] = {"status": "down", "error": str(e)}
-    
+
     # 检查Redis
     try:
         await redis_pool.redis.ping()
@@ -84,7 +82,7 @@ async def health_check():
     except Exception as e:
         health_status["status"] = "unhealthy"
         health_status["checks"]["redis"] = {"status": "down", "error": str(e)}
-    
+
     return await HttpResponse.success(data=health_status)
 
 
@@ -102,30 +100,24 @@ async def health_check():
                         "code": 0,
                         "msg": "OK",
                         "success": True,
-                        "data": {
-                            "ready": True,
-                            "timestamp": "2024-01-16T10:00:00"
-                        }
+                        "data": {"ready": True, "timestamp": "2024-01-16T10:00:00"},
                     }
                 }
-            }
+            },
         }
-    }
+    },
 )
 async def readiness_check():
     """
     就绪检查接口
-    
+
     用于 Kubernetes 等容器编排系统判断服务是否准备好接收流量
-    
+
     返回：
     - ready: 是否就绪
     - timestamp: 检查时间
     """
-    return await HttpResponse.success(data={
-        "ready": True,
-        "timestamp": datetime.now().isoformat()
-    })
+    return await HttpResponse.success(data={"ready": True, "timestamp": datetime.now().isoformat()})
 
 
 @router.get(
@@ -148,18 +140,18 @@ async def readiness_check():
                             "description": "企业级管理系统",
                             "base_url": "http://127.0.0.1:8100",
                             "api_prefix": "/api",
-                            "timestamp": "2024-01-16T10:00:00"
-                        }
+                            "timestamp": "2024-01-16T10:00:00",
+                        },
                     }
                 }
-            }
+            },
         }
-    }
+    },
 )
 async def system_info():
     """
     系统信息接口
-    
+
     返回系统的基本信息：
     - name: 系统名称
     - version: 系统版本
@@ -174,6 +166,6 @@ async def system_info():
         "description": config.SERVER_DESC.strip(),
         "base_url": str(config.BASE_URL),
         "api_prefix": config.API_PREFIX,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
     return await HttpResponse.success(data=info)

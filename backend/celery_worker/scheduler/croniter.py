@@ -20,19 +20,18 @@ try:
 except ImportError:
     OrderedDict = dict  # py26 degraded mode, expanders order will not be immutable
 
-step_search_re = re.compile(r'^([^-]+)-([^-/]+)(/(\d+))?$')
-only_int_re = re.compile(r'^\d+$')
-star_or_int_re = re.compile(r'^(\d+|\*)$')
-special_weekday_re = re.compile(r'^(\w+)#(\d+)|l(\d+)$')
+step_search_re = re.compile(r"^([^-]+)-([^-/]+)(/(\d+))?$")
+only_int_re = re.compile(r"^\d+$")
+star_or_int_re = re.compile(r"^(\d+|\*)$")
+special_weekday_re = re.compile(r"^(\w+)#(\d+)|l(\d+)$")
 hash_expression_re = re.compile(
-    r'^(?P<hash_type>h|r)(\((?P<range_begin>\d+)-(?P<range_end>\d+)\))?(\/(?P<divisor>\d+))?$'
+    r"^(?P<hash_type>h|r)(\((?P<range_begin>\d+)-(?P<range_end>\d+)\))?(\/(?P<divisor>\d+))?$"
 )
 VALID_LEN_EXPRESSION = [5, 6]
 
 
 def timedelta_to_seconds(td):
-    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10 ** 6) \
-           / 10 ** 6
+    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
 
 def datetime_to_timestamp(d):
@@ -55,7 +54,8 @@ def _get_caller_globals_and_locals():
 
 
 class CroniterError(ValueError):
-    """ General top-level Croniter base exception """
+    """General top-level Croniter base exception"""
+
     pass
 
 
@@ -64,12 +64,14 @@ class CroniterBadTypeRangeError(TypeError):
 
 
 class CroniterBadCronError(CroniterError):
-    """ Syntax, unknown value, or range error within a cron expression """
+    """Syntax, unknown value, or range error within a cron expression"""
+
     pass
 
 
 class CroniterUnsupportedSyntaxError(CroniterBadCronError):
-    """ Valid cron syntax, but likely to produce inaccurate results """
+    """Valid cron syntax, but likely to produce inaccurate results"""
+
     # Extending CroniterBadCronError, which may be contridatory, but this allows
     # catching both errors with a single exception.  From a user perspective
     # these will likely be handled the same way.
@@ -77,40 +79,45 @@ class CroniterUnsupportedSyntaxError(CroniterBadCronError):
 
 
 class CroniterBadDateError(CroniterError):
-    """ Unable to find next/prev timestamp match """
+    """Unable to find next/prev timestamp match"""
+
     pass
 
 
 class CroniterNotAlphaError(CroniterBadCronError):
-    """ Cron syntax contains an invalid day or month abbreviation """
+    """Cron syntax contains an invalid day or month abbreviation"""
+
     pass
 
 
 class croniter(object):
     MONTHS_IN_YEAR = 12
-    RANGES = (
-        (0, 59),
-        (0, 23),
-        (1, 31),
-        (1, 12),
-        (0, 7),
-        (0, 59)
-    )
-    DAYS = (
-        31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-    )
+    RANGES = ((0, 59), (0, 23), (1, 31), (1, 12), (0, 7), (0, 59))
+    DAYS = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
     ALPHACONV = (
         {},  # 0: min
         {},  # 1: hour
         {"l": "l"},  # 2: dom
         # 3: mon
-        {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-         'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12},
+        {
+            "jan": 1,
+            "feb": 2,
+            "mar": 3,
+            "apr": 4,
+            "may": 5,
+            "jun": 6,
+            "jul": 7,
+            "aug": 8,
+            "sep": 9,
+            "oct": 10,
+            "nov": 11,
+            "dec": 12,
+        },
         # 4: dow
-        {'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6},
+        {"sun": 0, "mon": 1, "tue": 2, "wed": 3, "thu": 4, "fri": 5, "sat": 6},
         # command/user
-        {}
+        {},
     )
 
     LOWMAP = (
@@ -122,17 +129,9 @@ class croniter(object):
         {},
     )
 
-    LEN_MEANS_ALL = (
-        60,
-        24,
-        31,
-        12,
-        7,
-        60
-    )
+    LEN_MEANS_ALL = (60, 24, 31, 12, 7, 60)
 
-    bad_length = 'Exactly 5 or 6 columns has to be specified for iterator ' \
-                 'expression.'
+    bad_length = "Exactly 5 or 6 columns has to be specified for iterator expression."
 
     minute = None
     hour = None
@@ -140,20 +139,26 @@ class croniter(object):
     day_of_month = None
     month_of_year = None
 
-    def __init__(self, expr_format, start_time=None, ret_type=float,
-                 day_or=True, max_years_between_matches=None, is_prev=False,
-                 hash_id=None):
+    def __init__(
+        self,
+        expr_format,
+        start_time=None,
+        ret_type=float,
+        day_or=True,
+        max_years_between_matches=None,
+        is_prev=False,
+        hash_id=None,
+    ):
         self._ret_type = ret_type
         self._day_or = day_or
 
         if hash_id:
             if not isinstance(hash_id, (bytes, str)):
-                raise TypeError('hash_id must be bytes or UTF-8 string')
+                raise TypeError("hash_id must be bytes or UTF-8 string")
             if not isinstance(hash_id, bytes):
-                hash_id = hash_id.encode('UTF-8')
+                hash_id = hash_id.encode("UTF-8")
 
-        self._max_years_btw_matches_explicitly_set = (
-                max_years_between_matches is not None)
+        self._max_years_btw_matches_explicitly_set = max_years_between_matches is not None
         if not self._max_years_btw_matches_explicitly_set:
             max_years_between_matches = 50
         self._max_years_between_matches = max(int(max_years_between_matches), 1)
@@ -176,8 +181,7 @@ class croniter(object):
         try:
             return cls.ALPHACONV[index][key]
         except KeyError:
-            raise CroniterNotAlphaError(
-                "[{0}] is not acceptable".format(" ".join(expressions)))
+            raise CroniterNotAlphaError("[{0}] is not acceptable".format(" ".join(expressions)))
 
     def get_next(self, ret_type=None, start_time=None):
         self.set_current(start_time, force=True)
@@ -241,16 +245,15 @@ class croniter(object):
         ret_type = ret_type or self._ret_type
 
         if not issubclass(ret_type, (float, datetime.datetime)):
-            raise TypeError("Invalid ret_type, only 'float' or 'datetime' "
-                            "is acceptable.")
+            raise TypeError("Invalid ret_type, only 'float' or 'datetime' is acceptable.")
 
         # exception to support day of month and day of week as defined in cron
-        if (expanded[2][0] != '*' and expanded[4][0] != '*') and self._day_or:
+        if (expanded[2][0] != "*" and expanded[4][0] != "*") and self._day_or:
             bak = expanded[4]
-            expanded[4] = ['*']
+            expanded[4] = ["*"]
             t1 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
             expanded[4] = bak
-            expanded[2] = ['*']
+            expanded[2] = ["*"]
 
             t2 = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
             if not is_prev:
@@ -258,31 +261,23 @@ class croniter(object):
             else:
                 result = t1 if t1 > t2 else t2
         else:
-            result = self._calc(self.cur, expanded,
-                                nth_weekday_of_month, is_prev)
+            result = self._calc(self.cur, expanded, nth_weekday_of_month, is_prev)
 
         # DST Handling for cron job spanning across days
         dtstarttime = self._timestamp_to_datetime(self.dst_start_time)
-        dtstarttime_utcoffset = (
-                dtstarttime.utcoffset() or datetime.timedelta(0))
+        dtstarttime_utcoffset = dtstarttime.utcoffset() or datetime.timedelta(0)
         dtresult = self._timestamp_to_datetime(result)
         lag = lag_hours = 0
         # do we trigger DST on next crontab (handle backward changes)
         dtresult_utcoffset = dtstarttime_utcoffset
         if dtresult and self.tzinfo:
             dtresult_utcoffset = dtresult.utcoffset()
-            lag_hours = (
-                    self._timedelta_to_seconds(dtresult - dtstarttime) / (60 * 60)
-            )
-            lag = self._timedelta_to_seconds(
-                dtresult_utcoffset - dtstarttime_utcoffset
-            )
+            lag_hours = self._timedelta_to_seconds(dtresult - dtstarttime) / (60 * 60)
+            lag = self._timedelta_to_seconds(dtresult_utcoffset - dtstarttime_utcoffset)
         hours_before_midnight = 24 - dtstarttime.hour
         if dtresult_utcoffset != dtstarttime_utcoffset:
-            if (
-                    (lag > 0 and abs(lag_hours) >= hours_before_midnight)
-                    or (lag < 0 and
-                        ((3600 * abs(lag_hours) + abs(lag)) >= hours_before_midnight * 3600))
+            if (lag > 0 and abs(lag_hours) >= hours_before_midnight) or (
+                lag < 0 and ((3600 * abs(lag_hours) + abs(lag)) >= hours_before_midnight * 3600)
             ):
                 dtresult_adjusted = dtresult - datetime.timedelta(seconds=lag)
                 result_adjusted = self._datetime_to_timestamp(dtresult_adjusted)
@@ -301,10 +296,10 @@ class croniter(object):
     # or for combining multiple croniters into single
     # dates feed using 'itertools' module
     def all_next(self, ret_type=None):
-        '''Generator of all consecutive dates. Can be used instead of
+        """Generator of all consecutive dates. Can be used instead of
         implicit call to __iter__, whenever non-default
         'ret_type' has to be specified.
-        '''
+        """
         # In a Python 3.7+ world:  contextlib.suppress and contextlib.nullcontext could be used instead
         try:
             while True:
@@ -317,7 +312,7 @@ class croniter(object):
                 raise
 
     def all_prev(self, ret_type=None):
-        '''Generator of all previous dates.'''
+        """Generator of all previous dates."""
         try:
             while True:
                 self._is_prev = True
@@ -329,7 +324,7 @@ class croniter(object):
                 raise
 
     def iter(self, *args, **kwargs):
-        return (self._is_prev and self.all_prev or self.all_next)
+        return self._is_prev and self.all_prev or self.all_next
 
     def __iter__(self):
         return self
@@ -356,10 +351,9 @@ class croniter(object):
 
         def proc_month(d):
             try:
-                expanded[3].index('*')
+                expanded[3].index("*")
             except ValueError:
-                diff_month = nearest_diff_method(
-                    d.month, expanded[3], self.MONTHS_IN_YEAR)
+                diff_month = nearest_diff_method(d.month, expanded[3], self.MONTHS_IN_YEAR)
                 days = DAYS[month - 1]
                 if month == 2 and self.is_leap(year) is True:
                     days += 1
@@ -370,67 +364,60 @@ class croniter(object):
                     if is_prev:
                         d += relativedelta(months=diff_month)
                         reset_day = DAYS[d.month - 1]
-                        d += relativedelta(
-                            day=reset_day, hour=23, minute=59, second=59)
+                        d += relativedelta(day=reset_day, hour=23, minute=59, second=59)
                     else:
-                        d += relativedelta(months=diff_month, day=reset_day,
-                                           hour=0, minute=0, second=0)
+                        d += relativedelta(
+                            months=diff_month, day=reset_day, hour=0, minute=0, second=0
+                        )
                     return True, d
             return False, d
 
         def proc_day_of_month(d):
             try:
-                expanded[2].index('*')
+                expanded[2].index("*")
             except ValueError:
                 days = DAYS[month - 1]
                 if month == 2 and self.is_leap(year) is True:
                     days += 1
-                if 'l' in expanded[2] and days == d.day:
+                if "l" in expanded[2] and days == d.day:
                     return False, d
 
                 if is_prev:
-                    days_in_prev_month = DAYS[
-                        (month - 2) % self.MONTHS_IN_YEAR]
-                    diff_day = nearest_diff_method(
-                        d.day, expanded[2], days_in_prev_month)
+                    days_in_prev_month = DAYS[(month - 2) % self.MONTHS_IN_YEAR]
+                    diff_day = nearest_diff_method(d.day, expanded[2], days_in_prev_month)
                 else:
                     diff_day = nearest_diff_method(d.day, expanded[2], days)
 
                 if diff_day is not None and diff_day != 0:
                     if is_prev:
-                        d += relativedelta(
-                            days=diff_day, hour=23, minute=59, second=59)
+                        d += relativedelta(days=diff_day, hour=23, minute=59, second=59)
                     else:
-                        d += relativedelta(
-                            days=diff_day, hour=0, minute=0, second=0)
+                        d += relativedelta(days=diff_day, hour=0, minute=0, second=0)
                     return True, d
             return False, d
 
         def proc_day_of_week(d):
             try:
-                expanded[4].index('*')
+                expanded[4].index("*")
             except ValueError:
-                diff_day_of_week = nearest_diff_method(
-                    d.isoweekday() % 7, expanded[4], 7)
+                diff_day_of_week = nearest_diff_method(d.isoweekday() % 7, expanded[4], 7)
                 if diff_day_of_week is not None and diff_day_of_week != 0:
                     if is_prev:
-                        d += relativedelta(days=diff_day_of_week,
-                                           hour=23, minute=59, second=59)
+                        d += relativedelta(days=diff_day_of_week, hour=23, minute=59, second=59)
                     else:
-                        d += relativedelta(days=diff_day_of_week,
-                                           hour=0, minute=0, second=0)
+                        d += relativedelta(days=diff_day_of_week, hour=0, minute=0, second=0)
                     return True, d
             return False, d
 
         def proc_day_of_week_nth(d):
-            if '*' in nth_weekday_of_month:
-                s = nth_weekday_of_month['*']
+            if "*" in nth_weekday_of_month:
+                s = nth_weekday_of_month["*"]
                 for i in range(0, 7):
                     if i in nth_weekday_of_month:
                         nth_weekday_of_month[i].update(s)
                     else:
                         nth_weekday_of_month[i] = s
-                del nth_weekday_of_month['*']
+                del nth_weekday_of_month["*"]
 
             candidates = []
             for wday, nth in nth_weekday_of_month.items():
@@ -442,45 +429,37 @@ class croniter(object):
                         continue
                     else:
                         candidate = c[n - 1]
-                    if (
-                            (is_prev and candidate <= d.day) or
-                            (not is_prev and d.day <= candidate)
-                    ):
+                    if (is_prev and candidate <= d.day) or (not is_prev and d.day <= candidate):
                         candidates.append(candidate)
 
             if not candidates:
                 if is_prev:
-                    d += relativedelta(days=-d.day,
-                                       hour=23, minute=59, second=59)
+                    d += relativedelta(days=-d.day, hour=23, minute=59, second=59)
                 else:
                     days = DAYS[month - 1]
                     if month == 2 and self.is_leap(year) is True:
                         days += 1
-                    d += relativedelta(days=(days - d.day + 1),
-                                       hour=0, minute=0, second=0)
+                    d += relativedelta(days=(days - d.day + 1), hour=0, minute=0, second=0)
                 return True, d
 
             candidates.sort()
             diff_day = (candidates[-1] if is_prev else candidates[0]) - d.day
             if diff_day != 0:
                 if is_prev:
-                    d += relativedelta(days=diff_day,
-                                       hour=23, minute=59, second=59)
+                    d += relativedelta(days=diff_day, hour=23, minute=59, second=59)
                 else:
-                    d += relativedelta(days=diff_day,
-                                       hour=0, minute=0, second=0)
+                    d += relativedelta(days=diff_day, hour=0, minute=0, second=0)
                 return True, d
             return False, d
 
         def proc_hour(d):
             try:
-                expanded[1].index('*')
+                expanded[1].index("*")
             except ValueError:
                 diff_hour = nearest_diff_method(d.hour, expanded[1], 24)
                 if diff_hour is not None and diff_hour != 0:
                     if is_prev:
-                        d += relativedelta(
-                            hours=diff_hour, minute=59, second=59)
+                        d += relativedelta(hours=diff_hour, minute=59, second=59)
                     else:
                         d += relativedelta(hours=diff_hour, minute=0, second=0)
                     return True, d
@@ -488,7 +467,7 @@ class croniter(object):
 
         def proc_minute(d):
             try:
-                expanded[0].index('*')
+                expanded[0].index("*")
             except ValueError:
                 diff_min = nearest_diff_method(d.minute, expanded[0], 60)
                 if diff_min is not None and diff_min != 0:
@@ -502,7 +481,7 @@ class croniter(object):
         def proc_second(d):
             if len(expanded) == 6:
                 try:
-                    expanded[5].index('*')
+                    expanded[5].index("*")
                 except ValueError:
                     diff_sec = nearest_diff_method(d.second, expanded[5], 60)
                     if diff_sec is not None and diff_sec != 0:
@@ -512,13 +491,14 @@ class croniter(object):
                 d += relativedelta(second=0)
             return False, d
 
-        procs = [proc_month,
-                 proc_day_of_month,
-                 (proc_day_of_week_nth if nth_weekday_of_month
-                  else proc_day_of_week),
-                 proc_hour,
-                 proc_minute,
-                 proc_second]
+        procs = [
+            proc_month,
+            proc_day_of_month,
+            (proc_day_of_week_nth if nth_weekday_of_month else proc_day_of_week),
+            proc_hour,
+            proc_minute,
+            proc_second,
+        ]
 
         while abs(year - current_year) <= self._max_years_between_matches:
             next = False
@@ -564,9 +544,9 @@ class croniter(object):
         candidates = to_check[:]
         candidates.reverse()
         for d in candidates:
-            if d != 'l' and d <= x:
+            if d != "l" and d <= x:
                 return d - x
-        if 'l' in candidates:
+        if "l" in candidates:
             return -x
         candidate = candidates[0]
         for c in candidates:
@@ -582,12 +562,12 @@ class croniter(object):
         if candidate > range_val:
             # fix crontab "0 6 30 3 *" condidates only a element,
             # then get_prev error return 2021-03-02 06:00:00
-            return - x
-        return (candidate - x - range_val)
+            return -x
+        return candidate - x - range_val
 
     @staticmethod
     def _get_nth_weekday_of_month(year, month, day_of_week):
-        """ For a given year/month return a list of days in nth-day-of-month order.
+        """For a given year/month return a list of days in nth-day-of-month order.
         The last weekday of the month is always [-1].
         """
         w = (day_of_week + 6) % 7
@@ -608,13 +588,13 @@ class croniter(object):
         # etc. Keep expr_format untouched so we can use it in the exception
         # messages.
         expr_aliases = {
-            '@midnight': ('0 0 * * *', 'h h(0-2) * * * h'),
-            '@hourly': ('0 * * * *', 'h * * * * h'),
-            '@daily': ('0 0 * * *', 'h h * * * h'),
-            '@weekly': ('0 0 * * 0', 'h h * * h h'),
-            '@monthly': ('0 0 1 * *', 'h h h * * h'),
-            '@yearly': ('0 0 1 1 *', 'h h h h * h'),
-            '@annually': ('0 0 1 1 *', 'h h h h * h'),
+            "@midnight": ("0 0 * * *", "h h(0-2) * * * h"),
+            "@hourly": ("0 * * * *", "h * * * * h"),
+            "@daily": ("0 0 * * *", "h h * * * h"),
+            "@weekly": ("0 0 * * 0", "h h * * h h"),
+            "@monthly": ("0 0 1 * *", "h h h * * h"),
+            "@yearly": ("0 0 1 1 *", "h h h h * h"),
+            "@annually": ("0 0 1 1 *", "h h h h * h"),
         }
 
         efl = expr_format.lower()
@@ -646,7 +626,7 @@ class croniter(object):
             for expanderid, expander in EXPANDERS.items():
                 expr = expander(cls).expand(efl, i, expr, hash_id=hash_id)
 
-            e_list = expr.split(',')
+            e_list = expr.split(",")
             res = []
 
             while len(e_list) > 0:
@@ -661,11 +641,12 @@ class croniter(object):
                         if nth:
                             try:
                                 nth = int(nth)
-                                assert (nth >= 1 and nth <= 5)
+                                assert nth >= 1 and nth <= 5
                             except (ValueError, AssertionError):
                                 raise CroniterBadCronError(
                                     "[{0}] is not acceptable.  Invalid day_of_week "
-                                    "value: '{1}'".format(expr_format, orig_e))
+                                    "value: '{1}'".format(expr_format, orig_e)
+                                )
                         elif last:
                             nth = "l"
                             e = last
@@ -675,27 +656,22 @@ class croniter(object):
 
                 # Before matching step_search_re, normalize "*" to "{min}-{max}".
                 # Example: in the minute field, "*/5" normalizes to "0-59/5"
-                t = re.sub(r'^\*(\/.+)$', r'%d-%d\1' % (
-                    cls.RANGES[i][0],
-                    cls.RANGES[i][1]),
-                           str(e))
+                t = re.sub(r"^\*(\/.+)$", r"%d-%d\1" % (cls.RANGES[i][0], cls.RANGES[i][1]), str(e))
                 m = step_search_re.search(t)
 
                 if not m:
                     # Before matching step_search_re,
                     # normalize "{start}/{step}" to "{start}-{max}/{step}".
                     # Example: in the minute field, "10/5" normalizes to "10-59/5"
-                    t = re.sub(r'^(.+)\/(.+)$', r'\1-%d/\2' % (
-                        cls.RANGES[i][1]),
-                               str(e))
+                    t = re.sub(r"^(.+)\/(.+)$", r"\1-%d/\2" % (cls.RANGES[i][1]), str(e))
                     m = step_search_re.search(t)
 
                 if m:
                     # early abort if low/high are out of bounds
 
                     (low, high, step) = m.group(1), m.group(2), m.group(4) or 1
-                    if i == 2 and high == 'l':
-                        high = '31'
+                    if i == 2 and high == "l":
+                        high = "31"
 
                     if not only_int_re.search(low):
                         low = "{0}".format(cls._alphaconv(i, low, expressions))
@@ -704,35 +680,38 @@ class croniter(object):
                         high = "{0}".format(cls._alphaconv(i, high, expressions))
 
                     if (
-                            not low or not high or int(low) > int(high)
-                            or not only_int_re.search(str(step))
+                        not low
+                        or not high
+                        or int(low) > int(high)
+                        or not only_int_re.search(str(step))
                     ):
-                        if i == 4 and high == '0':
+                        if i == 4 and high == "0":
                             # handle -Sun notation -> 7
-                            high = '7'
+                            high = "7"
                         else:
                             raise CroniterBadCronError(
-                                "[{0}] is not acceptable".format(expr_format))
+                                "[{0}] is not acceptable".format(expr_format)
+                            )
 
                     low, high, step = map(int, [low, high, step])
-                    if (
-                            max(low, high) > max(cls.RANGES[i][0], cls.RANGES[i][1])
-                    ):
-                        raise CroniterBadCronError(
-                            "{0} is out of bands".format(expr_format))
+                    if max(low, high) > max(cls.RANGES[i][0], cls.RANGES[i][1]):
+                        raise CroniterBadCronError("{0} is out of bands".format(expr_format))
                     try:
                         rng = range(low, high + 1, step)
                     except ValueError as exc:
-                        raise CroniterBadCronError(
-                            'invalid range: {0}'.format(exc))
-                    e_list += (["{0}#{1}".format(item, nth) for item in rng]
-                               if i == 4 and nth and nth != "l" else rng)
+                        raise CroniterBadCronError("invalid range: {0}".format(exc))
+                    e_list += (
+                        ["{0}#{1}".format(item, nth) for item in rng]
+                        if i == 4 and nth and nth != "l"
+                        else rng
+                    )
                 else:
-                    if t.startswith('-'):
-                        raise CroniterBadCronError((
-                                                       "[{0}] is not acceptable,"
-                                                       "negative numbers not allowed"
-                                                   ).format(expr_format))
+                    if t.startswith("-"):
+                        raise CroniterBadCronError(
+                            ("[{0}] is not acceptable,negative numbers not allowed").format(
+                                expr_format
+                            )
+                        )
                     if not star_or_int_re.search(t):
                         t = cls._alphaconv(i, t, expressions)
 
@@ -742,22 +721,20 @@ class croniter(object):
                         pass
 
                     if t in cls.LOWMAP[i] and not (
-                            # do not support 0 as a month either for classical 5 fields cron
-                            # or 6fields second repeat form
-                            # but still let conversion happen if day field is shifted
-                            (i in [2, 3] and len(expressions) == 5) or
-                            (i in [3, 4] and len(expressions) == 6)
+                        # do not support 0 as a month either for classical 5 fields cron
+                        # or 6fields second repeat form
+                        # but still let conversion happen if day field is shifted
+                        (i in [2, 3] and len(expressions) == 5)
+                        or (i in [3, 4] and len(expressions) == 6)
                     ):
                         t = cls.LOWMAP[i][t]
 
-                    if (
-                            t not in ["*", "l"]
-                            and (int(t) < cls.RANGES[i][0] or
-                                 int(t) > cls.RANGES[i][1])
+                    if t not in ["*", "l"] and (
+                        int(t) < cls.RANGES[i][0] or int(t) > cls.RANGES[i][1]
                     ):
                         raise CroniterBadCronError(
-                            "[{0}] is not acceptable, out of range".format(
-                                expr_format))
+                            "[{0}] is not acceptable, out of range".format(expr_format)
+                        )
 
                     res.append(t)
 
@@ -769,11 +746,9 @@ class croniter(object):
             res = set(res)
             res = sorted(res, key=lambda i: "{:02}".format(i) if isinstance(i, int) else i)
             if len(res) == cls.LEN_MEANS_ALL[i]:
-                res = ['*']
+                res = ["*"]
 
-            expanded.append(['*'] if (len(res) == 1
-                                      and res[0] == '*')
-                            else res)
+            expanded.append(["*"] if (len(res) == 1 and res[0] == "*") else res)
 
         # Check to make sure the dow combo in use is supported
         if nth_weekday_of_month:
@@ -783,7 +758,10 @@ class croniter(object):
             if dow_expanded_set:
                 raise CroniterUnsupportedSyntaxError(
                     "day-of-week field does not support mixing literal values and nth day of week syntax.  "
-                    "Cron: '{}'    dow={} vs nth={}".format(expr_format, dow_expanded_set, nth_weekday_of_month))
+                    "Cron: '{}'    dow={} vs nth={}".format(
+                        expr_format, dow_expanded_set, nth_weekday_of_month
+                    )
+                )
 
         return expanded, nth_weekday_of_month
 
@@ -822,8 +800,9 @@ class croniter(object):
         return (max(tdp, tdt) - min(tdp, tdt)).total_seconds() < 60
 
 
-def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude_ends=False,
-                   _croniter=None):
+def croniter_range(
+    start, stop, expr_format, ret_type=None, day_or=True, exclude_ends=False, _croniter=None
+):
     """
     Generator that provides all times from start to stop matching the given cron expression.
     If the cron expression matches either 'start' and/or 'stop', those times will be returned as
@@ -835,14 +814,12 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
     _croniter = _croniter or croniter
     auto_rt = datetime.datetime
     # type is used in first if branch for perfs reasons
-    if (
-            type(start) != type(stop) and not (
-            isinstance(start, type(stop)) or
-            isinstance(stop, type(start)))
+    if type(start) != type(stop) and not (
+        isinstance(start, type(stop)) or isinstance(stop, type(start))
     ):
         raise CroniterBadTypeRangeError(
-            "The start and stop must be same type.  {0} != {1}".
-            format(type(start), type(stop)))
+            "The start and stop must be same type.  {0} != {1}".format(type(start), type(stop))
+        )
     if isinstance(start, (float, int)):
         start, stop = (datetime.datetime.utcfromtimestamp(t) for t in (start, stop))
         auto_rt = float
@@ -857,15 +834,22 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
             start += ms1
             stop -= ms1
     year_span = math.floor(abs(stop.year - start.year)) + 1
-    ic = _croniter(expr_format, start, ret_type=datetime.datetime, day_or=day_or,
-                   max_years_between_matches=year_span)
+    ic = _croniter(
+        expr_format,
+        start,
+        ret_type=datetime.datetime,
+        day_or=day_or,
+        max_years_between_matches=year_span,
+    )
     # define a continue (cont) condition function and step function for the main while loop
     if start < stop:  # Forward
+
         def cont(v):
             return v < stop
 
         step = ic.get_next
     else:  # Reverse
+
         def cont(v):
             return v > stop
 
@@ -884,7 +868,6 @@ def croniter_range(start, stop, expr_format, ret_type=None, day_or=True, exclude
 
 
 class HashExpander:
-
     def __init__(self, cronit):
         self.cron = cronit
 
@@ -894,7 +877,7 @@ class HashExpander:
             range_end = self.cron.RANGES[idx][1]
         if range_begin is None:
             range_begin = self.cron.RANGES[idx][0]
-        if hash_type == 'r':
+        if hash_type == "r":
             crc = random.randint(0, 0xFFFFFFFF)
         else:
             crc = binascii.crc32(hash_id) & 0xFFFFFFFF
@@ -903,69 +886,72 @@ class HashExpander:
     def match(self, efl, idx, expr, hash_id=None, **kw):
         return hash_expression_re.match(expr)
 
-    def expand(self, efl, idx, expr, hash_id=None, match='', **kw):
+    def expand(self, efl, idx, expr, hash_id=None, match="", **kw):
         """Expand a hashed/random expression to its normal representation"""
-        if match == '':
+        if match == "":
             match = self.match(efl, idx, expr, hash_id, **kw)
         if not match:
             return expr
         m = match.groupdict()
 
-        if m['hash_type'] == 'h' and hash_id is None:
-            raise CroniterBadCronError('Hashed definitions must include hash_id')
+        if m["hash_type"] == "h" and hash_id is None:
+            raise CroniterBadCronError("Hashed definitions must include hash_id")
 
-        if m['range_begin'] and m['range_end'] and m['divisor']:
+        if m["range_begin"] and m["range_end"] and m["divisor"]:
             # Example: H(30-59)/10 -> 34-59/10 (i.e. 34,44,54)
             if int(m["divisor"]) == 0:
                 raise CroniterBadCronError("Bad expression: {0}".format(expr))
 
-            return '{0}-{1}/{2}'.format(
+            return "{0}-{1}/{2}".format(
                 self.do(
                     idx,
-                    hash_type=m['hash_type'],
+                    hash_type=m["hash_type"],
                     hash_id=hash_id,
-                    range_end=int(m['divisor']),
-                ) + int(m['range_begin']),
-                int(m['range_end']),
-                int(m['divisor']),
+                    range_end=int(m["divisor"]),
+                )
+                + int(m["range_begin"]),
+                int(m["range_end"]),
+                int(m["divisor"]),
             )
-        elif m['range_begin'] and m['range_end']:
+        elif m["range_begin"] and m["range_end"]:
             # Example: H(0-29) -> 12
             return str(
                 self.do(
                     idx,
-                    hash_type=m['hash_type'],
+                    hash_type=m["hash_type"],
                     hash_id=hash_id,
-                    range_end=int(m['range_end']),
-                    range_begin=int(m['range_begin']),
+                    range_end=int(m["range_end"]),
+                    range_begin=int(m["range_begin"]),
                 )
             )
-        elif m['divisor']:
+        elif m["divisor"]:
             # Example: H/15 -> 7-59/15 (i.e. 7,22,37,52)
             if int(m["divisor"]) == 0:
                 raise CroniterBadCronError("Bad expression: {0}".format(expr))
 
-            return '{0}-{1}/{2}'.format(
+            return "{0}-{1}/{2}".format(
                 self.do(
                     idx,
-                    hash_type=m['hash_type'],
+                    hash_type=m["hash_type"],
                     hash_id=hash_id,
-                    range_end=int(m['divisor']),
+                    range_end=int(m["divisor"]),
                 ),
                 self.cron.RANGES[idx][1],
-                int(m['divisor']),
+                int(m["divisor"]),
             )
         else:
             # Example: H -> 32
             return str(
                 self.do(
                     idx,
-                    hash_type=m['hash_type'],
+                    hash_type=m["hash_type"],
                     hash_id=hash_id,
                 )
             )
 
 
-EXPANDERS = OrderedDict([
-    ('hash', HashExpander),
-])
+EXPANDERS = OrderedDict(
+    [
+        ("hash", HashExpander),
+    ]
+)

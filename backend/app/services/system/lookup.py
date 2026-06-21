@@ -2,7 +2,13 @@ import typing
 from app.corelibs.codes import CodeEnum
 from app.exceptions.exceptions import ParameterError
 from app.models.system_models import Lookup, LookupValue
-from app.schemas.system.lookup import LookupIn, LookupValueIn, LookupQuery, LookupId, LookupValueQuery
+from app.schemas.system.lookup import (
+    LookupIn,
+    LookupValueIn,
+    LookupQuery,
+    LookupId,
+    LookupValueQuery,
+)
 
 
 class LookupService:
@@ -33,12 +39,11 @@ class LookupService:
     @staticmethod
     async def deleted(params: LookupId):
         if await LookupValue.get_lookup_value(LookupValueQuery(lookup_id=params.id)):
-            raise ParameterError('数据字典类型不能直接删除，请先解除数据字典类型与数据字典关联')
+            raise ParameterError("数据字典类型不能直接删除，请先解除数据字典类型与数据字典关联")
         return await Lookup.delete(params.id)
 
 
 class LookupValueService:
-
     @staticmethod
     async def get_all_lookup() -> typing.Dict[typing.Text, typing.Any]:
         """获取所有数据字典"""
@@ -73,8 +78,9 @@ class LookupValueService:
         if not params.lookup_id:
             raise ParameterError("字典id不能为空！")
 
-        exists_lookup_value = await LookupValue.get_lookup_value_by_lookup_id(lookup_id=params.lookup_id,
-                                                                              lookup_code=params.lookup_code)
+        exists_lookup_value = await LookupValue.get_lookup_value_by_lookup_id(
+            lookup_id=params.lookup_id, lookup_code=params.lookup_code
+        )
 
         if params.id:
             lookup_value = await LookupValue.get(params.id)
@@ -83,8 +89,9 @@ class LookupValueService:
             if lookup_value.lookup_code != params.lookup_code and exists_lookup_value:
                 raise ParameterError("数据字典值的value以及编码已经存在!")
         else:
-            if await LookupValue.get_lookup_value_by_lookup_id(lookup_id=params.lookup_id,
-                                                               lookup_code=params.lookup_code):
+            if await LookupValue.get_lookup_value_by_lookup_id(
+                lookup_id=params.lookup_id, lookup_code=params.lookup_code
+            ):
                 raise ParameterError("数据字典值的value以及编码已经存在!")
         return await LookupValue.create_or_update(params.dict())
 

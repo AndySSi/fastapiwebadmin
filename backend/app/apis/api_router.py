@@ -1,8 +1,18 @@
-# -*- coding: utf-8 -*-
 # @author: rebort
 from fastapi import APIRouter
 
-from app.apis.system import user, menu, roles, lookup, id_center, file, health, project, login_record, department
+from app.apis.system import (
+    department,
+    file,
+    health,
+    id_center,
+    login_record,
+    lookup,
+    menu,
+    project,
+    roles,
+    user,
+)
 
 app_router = APIRouter()
 

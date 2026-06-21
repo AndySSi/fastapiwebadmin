@@ -14,13 +14,13 @@ async def project_list(params: ProjectQuery):
     return await HttpResponse.success(data)
 
 
-@router.post('/saveOrUpdate', description="保存或更新项目")
+@router.post("/saveOrUpdate", description="保存或更新项目")
 async def save_or_update(params: ProjectIn):
     await ProjectService.save_or_update(params)
     return await HttpResponse.success()
 
 
-@router.post('/deleted', description="删除项目")
+@router.post("/deleted", description="删除项目")
 async def deleted(params: ProjectDel):
     await ProjectService.deleted(params)
     return await HttpResponse.success()

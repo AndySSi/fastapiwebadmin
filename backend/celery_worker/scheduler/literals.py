@@ -1,11 +1,11 @@
 # coding=utf-8
 from app.config import config
 
-DAYS = 'days'
-HOURS = 'hours'
-MINUTES = 'minutes'
-SECONDS = 'seconds'
-MICROSECONDS = 'microseconds'
+DAYS = "days"
+HOURS = "hours"
+MINUTES = "minutes"
+SECONDS = "seconds"
+MICROSECONDS = "microseconds"
 
 
 # This scheduler must wake up more frequently than the

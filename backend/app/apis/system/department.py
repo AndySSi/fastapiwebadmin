@@ -14,13 +14,13 @@ async def department_list():
     return await HttpResponse.success(data)
 
 
-@router.post('/saveOrUpdate', description="保存或更新部门")
+@router.post("/saveOrUpdate", description="保存或更新部门")
 async def save_or_update(params: DepartmentIn):
     await DepartmentService.save_or_update(params)
     return await HttpResponse.success()
 
 
-@router.post('/deleted', description="删除部门")
+@router.post("/deleted", description="删除部门")
 async def deleted(params: DepartmentDel):
     await DepartmentService.deleted(params)
     return await HttpResponse.success()

@@ -22,8 +22,12 @@ async def login_verification(request: Request):
     :return:
     """
     token = request.headers.get("token", None)
-    router: str = request.scope.get('path', "")
-    if router.startswith("/api") and not router.startswith("/api/file") and router not in config.WHITE_ROUTER:
+    router: str = request.scope.get("path", "")
+    if (
+        router.startswith("/api")
+        and not router.startswith("/api/file")
+        and router not in config.WHITE_ROUTER
+    ):
         if not token:
             raise AccessTokenFail()
         user_info = await redis_pool.redis.get(TEST_USER_INFO.format(token))

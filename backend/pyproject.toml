@@ -47,3 +47,51 @@ dependencies = [
 [[tool.uv.index]]
 url = "https://mirrors.aliyun.com/pypi/simple"
 default = true
+
+[tool.ruff]
+# 行宽,和 black 默认一致
+line-length = 100
+# 目标 Python 版本(根据你的项目调整)
+target-version = "py312"
+
+# 排除目录(默认就排除 .venv 等,这里可以追加)
+extend-exclude = [
+    "migrations",
+    "build",
+]
+
+[tool.ruff.lint]
+# 启用的规则集
+select = [
+    "E",    # pycodestyle 错误
+    "W",    # pycodestyle 警告
+    "F",    # pyflakes
+    "I",    # isort(整理 import)
+    "B",    # bugbear(常见 bug)
+    "C4",   # comprehensions(推导式优化)
+    "UP",   # pyupgrade(用新语法)
+    "SIM",  # simplify(简化代码)
+    "RUF",  # ruff 自己的规则
+]
+# 忽略的规则
+ignore = [
+    "E501",  # 行太长(让 formatter 处理)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# 对特定文件放宽规则
+"__init__.py" = ["F401"]     # 允许未使用的 import
+"tests/*" = ["S101"]         # 测试里允许 assert
+
+[tool.ruff.format]
+# 字符串引号风格:double / single / preserve
+quote-style = "double"
+# 缩进:space / tab
+indent-style = "space"
+# 行尾:auto / lf / cr / crlf(WSL 推荐 lf)
+line-ending = "lf"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.18",
+]

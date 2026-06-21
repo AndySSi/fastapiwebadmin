@@ -9,7 +9,7 @@ class BaseSchema(BaseModel):
             kwargs["exclude_none"] = True
         return super(BaseSchema, self).model_dump(*args, **kwargs)
 
-    @field_validator('*', mode="before")
+    @field_validator("*", mode="before")
     def blank_strings(cls, v):
         if v == "":
             return None

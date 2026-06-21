@@ -24,10 +24,10 @@ class RolesService:
             role_info = await Roles.get(params.id)
             if role_info.name != params.name:
                 if await Roles.get_roles_by_name(params.name):
-                    raise ValueError('角色名已存在!')
+                    raise ValueError("角色名已存在!")
         else:
             if await Roles.get_roles_by_name(params.name):
-                raise ValueError('角色名已存在!')
+                raise ValueError("角色名已存在!")
         result = await Roles.create_or_update(params.dict())
         return result
 
@@ -36,7 +36,7 @@ class RolesService:
         try:
             relation_data = await User.get_user_by_roles(params.id)
             if relation_data:
-                raise ValueError('有用户关联了当前角色，不允许删除!')
+                raise ValueError("有用户关联了当前角色，不允许删除!")
             return await Roles.delete(params.id)
         except Exception as err:
             logger.error(traceback.format_exc())

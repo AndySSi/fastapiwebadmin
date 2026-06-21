@@ -87,15 +87,25 @@ def create_celery():
         def delay(self, *args, **kwargs):
             return self.apply_async(args, kwargs)
 
-        def apply_async(self, args=None, kwargs=None, task_id=None, producer=None,
-                        link=None, link_error=None, shadow=None, **options):
+        def apply_async(
+            self,
+            args=None,
+            kwargs=None,
+            task_id=None,
+            producer=None,
+            link=None,
+            link_error=None,
+            shadow=None,
+            **options,
+        ):
             headers = {"headers": {"trace_id": g.trace_id}}
             if options:
                 options.update(headers)
             else:
                 options = headers
-            return super(ContextTask, self).apply_async(args, kwargs, task_id, producer, link, link_error,
-                                                        shadow, **options)
+            return super(ContextTask, self).apply_async(
+                args, kwargs, task_id, producer, link, link_error, shadow, **options
+            )
 
         def on_success(self, retval, task_id, args, kwargs):
             """任务成功时回调"""
@@ -139,7 +149,7 @@ celery = create_celery()
 # beat 数据库
 # celery -A celery_worker.worker.celery beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
 
     celery.start(argv=sys.argv[1:])

@@ -17,11 +17,11 @@ from config import config
 
 @asynccontextmanager
 async def start_app(app: FastAPI):
-    """ 注册中心 """
+    """注册中心"""
     redis_pool.init_by_config(config=config)
     init_logger()
     logger.info("日志初始化成功！！!")
-    
+
     # 初始化限流器（异步）
     await init_limiter(app)
 
@@ -74,6 +74,6 @@ def create_app() -> FastAPI:
 app = create_app()
 
 
-if __name__ == '__main__':
-    uvicorn.run(app='main:app', host="127.0.0.1", port=8100, reload=True)
+if __name__ == "__main__":
+    uvicorn.run(app="main:app", host="127.0.0.1", port=8100, reload=True)
     # gunicorn main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8101

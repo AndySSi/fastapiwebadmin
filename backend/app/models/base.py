@@ -6,10 +6,26 @@ try:
     from loguru import logger
 except ImportError:
     import logging
+
     logger = logging.getLogger(__name__)
 
-from sqlalchemy import Boolean, DateTime, func, select, update, delete, insert, Select, \
-    Executable, Result, String, ClauseList, BigInteger, literal_column, Row
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    func,
+    select,
+    update,
+    delete,
+    insert,
+    Select,
+    Executable,
+    Result,
+    String,
+    ClauseList,
+    BigInteger,
+    literal_column,
+    Row,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import mapped_column, noload, Query
@@ -23,7 +39,8 @@ T = typing.TypeVar("T", Select, Query[typing.Any])
 
 @as_declarative()
 class Base:
-    """ 基本表 """
+    """基本表"""
+
     # db.scalar(sql) 返回的是标量(原始数据) <models.department.Department object at 0x000002F2C2D22110>
     # db.execute(sql) 返回的是元组 (<models.department.Department object at 0x000002F2C2D22110>)
     # db.scalars(sql).all()  [<models...>, <models...>, <models...>]
@@ -40,16 +57,24 @@ class Base:
     #     """将类名小写并转化为表名 __tablename__"""
     #     return cls.__name__.lower()
 
-    id = mapped_column(BigInteger(), nullable=False, primary_key=True, autoincrement=True, comment='主键')
-    creation_date = mapped_column(DateTime(), default=func.now(), comment='创建时间')
-    created_by = mapped_column(BigInteger, nullable=True, comment='创建人ID')
-    updation_date = mapped_column(DateTime(), default=func.now(), onupdate=func.now(), comment='更新时间')
-    updated_by = mapped_column(BigInteger, nullable=True, comment='更新人ID')
-    enabled_flag = mapped_column(Boolean(), default=1, nullable=False, comment='是否删除, 0 删除 1 非删除')
+    id = mapped_column(
+        BigInteger(), nullable=False, primary_key=True, autoincrement=True, comment="主键"
+    )
+    creation_date = mapped_column(DateTime(), default=func.now(), comment="创建时间")
+    created_by = mapped_column(BigInteger, nullable=True, comment="创建人ID")
+    updation_date = mapped_column(
+        DateTime(), default=func.now(), onupdate=func.now(), comment="更新时间"
+    )
+    updated_by = mapped_column(BigInteger, nullable=True, comment="更新人ID")
+    enabled_flag = mapped_column(
+        Boolean(), default=1, nullable=False, comment="是否删除, 0 删除 1 非删除"
+    )
     trace_id = mapped_column(String(255), nullable=True, comment="trace_id")
 
     @classmethod
-    async def get(cls, id: typing.Union[int, str], to_dict: object = False) -> typing.Union["Base", typing.Dict, None]:
+    async def get(
+        cls, id: typing.Union[int, str], to_dict: object = False
+    ) -> typing.Union["Base", typing.Dict, None]:
         """
         :param id: 查询id
         :param to_dict: 转字典
@@ -76,8 +101,9 @@ class Base:
         return await cls.get_result(stmt)
 
     @classmethod
-    async def create_or_update(cls, params: typing.Union[typing.Dict], to_dict: bool = True) -> typing.Dict[
-        typing.Text, typing.Any]:
+    async def create_or_update(
+        cls, params: typing.Union[typing.Dict], to_dict: bool = True
+    ) -> typing.Dict[typing.Text, typing.Any]:
         """
         :param params: 更新数据 dict
         :return: 更新后的数据 dict
@@ -95,7 +121,9 @@ class Base:
         return result
 
     @classmethod
-    async def create(cls, params: typing.Dict, to_dict: bool = False) -> typing.Union["Base", typing.Dict]:
+    async def create(
+        cls, params: typing.Dict, to_dict: bool = False
+    ) -> typing.Union["Base", typing.Dict]:
         """
         插入数据
         :param params: 批量插入数据
@@ -112,7 +140,9 @@ class Base:
         return await cls.get(primary_key, to_dict=to_dict)
 
     @classmethod
-    async def update(cls, params: typing.Dict, to_dict: bool = False) -> typing.Union['Base', typing.Dict]:
+    async def update(
+        cls, params: typing.Dict, to_dict: bool = False
+    ) -> typing.Union["Base", typing.Dict]:
         if not isinstance(params, dict):
             raise ValueError("参数错误")
         params = await cls.handle_params(params)
@@ -150,25 +180,28 @@ class Base:
             params = {key: value for key, value in params.items() if hasattr(cls, key)}
             if hasattr(cls, "trace_id") and AppTraceId.get():
                 params["trace_id"] = AppTraceId.get()
-            
+
             # 自动设置创建人和更新人
             try:
                 from app.utils import current_user
+
                 user_info = await current_user()
                 user_id = user_info.get("id", None) if user_info else None
-                
+
                 # 如果是新建（没有 id 或 id 为 None），设置创建人
-                if hasattr(cls, "created_by") and (not params.get("id") or params.get("id") is None):
+                if hasattr(cls, "created_by") and (
+                    not params.get("id") or params.get("id") is None
+                ):
                     if "created_by" not in params or params.get("created_by") is None:
                         params["created_by"] = user_id
-                
+
                 # 总是设置更新人
                 if hasattr(cls, "updated_by"):
                     params["updated_by"] = user_id
             except Exception:
                 # 如果获取当前用户失败，忽略错误
                 pass
-                
+
         elif isinstance(params, list):
             params = [await cls.handle_params(p) for p in params]
         return params
@@ -192,8 +225,7 @@ class Base:
 
     @classmethod
     @async_transaction
-    async def execute(cls, stmt: Executable, params: typing.Any = None) -> Result[
-        typing.Any]:
+    async def execute(cls, stmt: Executable, params: typing.Any = None) -> Result[typing.Any]:
         """
         执行sql
         :param stmt: sqlalchemy Executable 对象
@@ -261,9 +293,8 @@ class Base:
     @staticmethod
     @async_transaction
     async def parse_pagination(
-            query: select,
-            page: int = None,
-            page_size: int = None) -> typing.Dict[str, typing.Any]:
+        query: select, page: int = None, page_size: int = None
+    ) -> typing.Dict[str, typing.Any]:
         """
         统一分页处理
         :param query: query
@@ -273,27 +304,34 @@ class Base:
         """
         session: AsyncSession = SQLAlchemySession.get()
         request = FastApiRequest.get()
-        if request.method == 'POST':
-            request_json = request.scope.get('request_body', {})
-            page = int(request_json.get('page', 1)) if not page else page
-            page_size = min(int(request_json.get('pageSize', 10)), 1000) if not page_size else page_size
+        if request.method == "POST":
+            request_json = request.scope.get("request_body", {})
+            page = int(request_json.get("page", 1)) if not page else page
+            page_size = (
+                min(int(request_json.get("pageSize", 10)), 1000) if not page_size else page_size
+            )
         else:
-            page = request.query_params.get('page', 1) if not page else page
-            page_size = min(request.query_params.get('pageSize', default=10),
-                            1000) if not page_size else page_size
+            page = request.query_params.get("page", 1) if not page else page
+            page_size = (
+                min(request.query_params.get("pageSize", default=10), 1000)
+                if not page_size
+                else page_size
+            )
 
         (total,) = (await session.execute(Base.count_query(query))).scalars()
         start_time = time.time()
-        result = (await session.execute(Base.paginate_query(query, page=page, page_size=page_size))).fetchall()
+        result = (
+            await session.execute(Base.paginate_query(query, page=page, page_size=page_size))
+        ).fetchall()
         logger.debug(f"parse_pagination 耗时:{time.time() - start_time}")
         result = Base.unwrap_scalars(result)
         total_page = int(ceil(float(total) / page_size))
         pagination = {
-            'rowTotal': total,
-            'pageSize': page_size,
-            'page': page,
-            'pageTotal': total_page,
-            'rows': result,
+            "rowTotal": total,
+            "pageSize": page_size,
+            "page": page,
+            "pageTotal": total_page,
+            "rows": result,
         }
 
         return pagination
@@ -305,7 +343,9 @@ class Base:
         :param query: sql
         :return:
         """
-        count_subquery = typing.cast(typing.Any, query.order_by(None)).options(noload("*")).subquery()
+        count_subquery = (
+            typing.cast(typing.Any, query.order_by(None)).options(noload("*")).subquery()
+        )
         return select(func.count(literal_column("*"))).select_from(count_subquery)
 
     @staticmethod
@@ -328,8 +368,11 @@ class Base:
             return None
 
     @staticmethod
-    def unwrap_scalars(items: typing.Union[typing.Sequence[Row], Row]) -> typing.Union[
-        typing.List[typing.Dict[typing.Text, typing.Any]], typing.Dict[str, typing.Any]]:
+    def unwrap_scalars(
+        items: typing.Union[typing.Sequence[Row], Row],
+    ) -> typing.Union[
+        typing.List[typing.Dict[typing.Text, typing.Any]], typing.Dict[str, typing.Any]
+    ]:
         """
         数据库Row对象数据序列化为字典
         :param items: 数据返回数据 [Row(...)]

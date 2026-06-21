@@ -1,21 +1,19 @@
-# -*- coding: utf-8 -*-
 # @author: rebort
-
-
 import typing
 
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
-from config import config
+
 from app.db.redis import MyRedis
 from app.db.session import async_session
+from config import config
 
 get_token = OAuth2PasswordBearer(tokenUrl=f"{config.API_PREFIX}/login")
 
 
 async def get_db() -> typing.AsyncGenerator[AsyncSession, None]:
-    """ sql连接会话 """
+    """sql连接会话"""
     async with async_session() as session:
         try:
             yield session
@@ -28,5 +26,5 @@ async def get_db() -> typing.AsyncGenerator[AsyncSession, None]:
 
 
 async def get_redis(request: Request) -> MyRedis:
-    """ redis连接对象 """
+    """redis连接对象"""
     return await request.app.state.redis

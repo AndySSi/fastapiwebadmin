@@ -124,10 +124,10 @@ class AsyncIOPool:
     #     return info
 
     def run(
-            self,
-            task_function: AnyCallable | AnyCoroutine,
-            *args: typing.Any,
-            **kwargs: typing.Any,
+        self,
+        task_function: AnyCallable | AnyCoroutine,
+        *args: typing.Any,
+        **kwargs: typing.Any,
     ) -> typing.Any:
         """Run the supplied coroutine in the pool's bound loop-runner
         thread."""
@@ -145,7 +145,7 @@ class AsyncIOPool:
         # and bind the returned coroutine so we can run it on the
         # worker's thread-bound eventloop
         if callable(task_function) and not bool(
-                inspect.iscoroutine(task_function) or aio.isfuture(task_function)
+            inspect.iscoroutine(task_function) or aio.isfuture(task_function)
         ):
             task_function = aio.to_thread(
                 task_function,
@@ -187,10 +187,10 @@ class AsyncIOPool:
 
     @classmethod
     def run_in_pool(
-            cls,
-            task_function: AnyCallable | AnyCoroutine,
-            *args: typing.Any,
-            **kwargs: typing.Any,
+        cls,
+        task_function: AnyCallable | AnyCoroutine,
+        *args: typing.Any,
+        **kwargs: typing.Any,
     ) -> typing.Any:
         """Run the supplied task in the pool's thread-bound async loop."""
         if not (worker_pool := cls.singleton):
@@ -209,13 +209,13 @@ class AsyncIOPool:
             await self.loop.shutdown_asyncgens()
 
         if not self.loop.is_closed() and callable(
-                (
-                        closer := getattr(
-                            self.loop,
-                            "aclose",
-                            None,
-                        )
+            (
+                closer := getattr(
+                    self.loop,
+                    "aclose",
+                    None,
                 )
+            )
         ):
             await closer()
 

@@ -10,7 +10,12 @@ from contextlib import asynccontextmanager
 # 创建表引擎
 from loguru import logger
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_scoped_session, async_sessionmaker
+from sqlalchemy.ext.asyncio import (
+    create_async_engine,
+    AsyncSession,
+    async_scoped_session,
+    async_sessionmaker,
+)
 
 from app.utils.context import SQLAlchemySession
 from config import config
@@ -30,7 +35,7 @@ async_session_factory = async_sessionmaker(
     class_=AsyncSession,
     autoflush=False,
     autocommit=False,
-    expire_on_commit=False  # 防止提交后属性过期
+    expire_on_commit=False,  # 防止提交后属性过期
 )
 
 async_session = async_scoped_session(async_session_factory, scopefunc=current_task)
@@ -44,7 +49,7 @@ def provide_session(func: typing.Callable):
 
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
-        arg_session = 'session'
+        arg_session = "session"
 
         func_params = func.__code__.co_varnames
         session_in_args = arg_session in func_params and func_params.index(arg_session) < len(args)

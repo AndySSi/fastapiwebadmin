@@ -6,7 +6,6 @@ from enum import Enum
 
 
 class CodeEnum(Enum):
-
     @property
     def code(self):
         """获取状态吗"""
@@ -42,7 +41,10 @@ class CodeEnum(Enum):
     PROJECT_NAME_EXIST = (13001, "项目名已存在")  # 项目名以存在
 
     # module 模块 14000 - 15000
-    MODULE_HAS_CASE_ASSOCIATION = (14000, " 模块有用例关联, 请删除对于模块下的用例")  # 模块有用例关联
+    MODULE_HAS_CASE_ASSOCIATION = (
+        14000,
+        " 模块有用例关联, 请删除对于模块下的用例",
+    )  # 模块有用例关联
     MODULE_NAME_EXIST = (14001, "模块名已存在")  # 模块名以存在
 
     # case 用例/配置 15000 - 16000

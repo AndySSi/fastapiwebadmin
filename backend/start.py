@@ -3,18 +3,14 @@
 """
 启动脚本 - 避免编码问题
 """
+
 import os
 
 # 设置环境变量编码
-os.environ['PYTHONIOENCODING'] = 'utf-8'
+os.environ["PYTHONIOENCODING"] = "utf-8"
 
 # 启动应用
-if __name__ == '__main__':
+if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8100,
-        reload=True,
-        log_level="info"
-    )
+
+    uvicorn.run("main:app", host="0.0.0.0", port=8100, reload=True, log_level="info")
